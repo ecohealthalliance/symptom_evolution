@@ -26,8 +26,9 @@ processPromed = (promedData) ->
 
     dataset = _.keys(symptomDates)
 
-    width = 500
-    scale = 500 / (maxDate - minDate + 50)
+    scale = d3.scale.linear()
+      .domain([0, maxDate - minDate])
+      .range([0, 500])
 
     $('#graph').empty()
     graph = d3.select('#graph').append('svg')
@@ -46,9 +47,9 @@ processPromed = (promedData) ->
       .data(dataset)
       .enter()
       .append('rect')
-      .attr('x', (d, i) -> (firstDates[i] - minDate) * scale + 100)
+      .attr('x', (d, i) -> scale(firstDates[i] - minDate) + 100)
       .attr('y', (d, i) -> i * 25)
-      .attr('width', (d, i) -> (lastDates[i] - minDate) * scale + 5)
+      .attr('width', (d, i) -> scale(lastDates[i] - minDate) + 5)
       .attr('height', 20)
 
   $('#disease-field').autocomplete({
