@@ -64,7 +64,7 @@ processPromed = (promedData) ->
       .append('rect')
       .attr('x', (d, i) -> scale(firstDates[i] - minDate) + 100)
       .attr('y', (d, i) -> i * 25)
-      .attr('width', (d, i) -> scale(lastDates[i] - minDate) + 5)
+      .attr('width', (d, i) -> scale(lastDates[i] - firstDates[i]) + 5)
       .attr('height', 20)
 
     graph.append('g')
