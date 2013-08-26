@@ -30,6 +30,8 @@ processPromed = (promedData) ->
     maxDate = _.max(lastDates)
 
     dataset = _.keys(symptomDates)
+    colors = new d3.scale.category20().domain(symptoms)
+
 
     scale = d3.time.scale()
       .domain([minDate, maxDate])
@@ -55,6 +57,7 @@ processPromed = (promedData) ->
       .attr('y', (d, i) -> (i * 25) + 15)
       .attr('width', 50)
       .attr('height', 20)
+      .style('fill', colors)
 
     graph.selectAll('rect')
       .data(dataset)
@@ -64,6 +67,7 @@ processPromed = (promedData) ->
       .attr('y', (d, i) -> i * 25)
       .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
       .attr('height', 20)
+      .style('fill', colors)
 
     graph.append('g')
       .attr('transform', "translate(100,#{25*dataset.length})")
