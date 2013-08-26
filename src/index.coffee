@@ -31,19 +31,17 @@ processPromed = (promedData) ->
 
     dataset = _.keys(symptomDates)
 
-    scale = d3.scale.linear()
-      .domain([0, maxDate - minDate])
+    scale = d3.time.scale()
+      .domain([minDate, maxDate])
       .range([0, 500])
 
-    timeFormatter = d3.time.format('%b %Y')
-    formatAsTime = (timeDiff) ->
-      time = new Date(minDate.getTime() + timeDiff)
-      timeFormatter(time)
+    timeFormatter = d3.time.format('%b %y')
 
     axis = d3.svg.axis()
       .scale(scale)
       .orient('bottom')
-      .tickFormat(formatAsTime)
+      .tickFormat(timeFormatter)
+      .ticks(d3.time.month)
 
     $('#graph').empty()
     graph = d3.select('#graph').append('svg')
@@ -62,9 +60,9 @@ processPromed = (promedData) ->
       .data(dataset)
       .enter()
       .append('rect')
-      .attr('x', (d, i) -> scale(firstDates[i] - minDate) + 100)
+      .attr('x', (d, i) -> scale(firstDates[i]) + 100)
       .attr('y', (d, i) -> i * 25)
-      .attr('width', (d, i) -> scale(lastDates[i] - firstDates[i]) + 5)
+      .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
       .attr('height', 20)
 
     graph.append('g')
