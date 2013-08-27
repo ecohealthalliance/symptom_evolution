@@ -63,7 +63,7 @@ processPromed = (promedData) ->
       .data(dataset)
       .enter()
       .append('rect')
-      .attr('x', (d, i) -> scale(firstDates[i]) + 100)
+      .attr('x', (d, i) -> scale(firstDates[i]) + 125)
       .attr('y', (d, i) -> i * 25)
       .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
       .attr('height', 20)
