@@ -52,9 +52,11 @@ processPromed = (promedData) ->
     reportDots = d3.select('#reports').append('svg')
       .attr('height', _.keys(reports).length + 20)
 
-    highlightSymptoms = (d) ->
-      d3.select(this).attr('fill', 'steelblue')
-      symptoms = reports[d].symptoms
+    highlightSymptoms = (title) ->
+      d3.selectAll('.report')
+        .filter((d) -> d isnt title)
+        .attr('fill-opacity', 0.05)
+      symptoms = reports[title].symptoms
 
       d3.selectAll('.symptom')
         .filter((d) -> d in symptoms isnt true)
@@ -64,7 +66,7 @@ processPromed = (promedData) ->
         .attr('fill-opacity', 0.05)
 
     removeHighlight = (d) ->
-      d3.selectAll('circle').attr('fill', 'black')
+      d3.selectAll('.report').attr('fill-opacity', 1)
       d3.selectAll('.symptom').attr('fill-opacity', 1)
       d3.selectAll('.symptom-dates').attr('fill-opacity', 1)
 
@@ -72,6 +74,7 @@ processPromed = (promedData) ->
       .data(_.keys(reports))
       .enter()
       .append('circle')
+      .classed('report', true)
       .attr('cx', (d) -> scale(reports[d].date) + 125)
       .attr('cy', (d, i) -> i + 10)
       .attr('r', 10)
@@ -93,16 +96,40 @@ processPromed = (promedData) ->
       .attr('height', 20)
       .style('fill', colors)
 
-    graph.selectAll('rect')
+    symptomContainers = graph.selectAll('g')
       .data(dataset)
       .enter()
-      .append('rect')
+      .append('g')
+
+    symptomContainers.append('rect')
       .classed('symptom-dates', true)
       .attr('x', (d, i) -> scale(firstDates[i]) + 125)
       .attr('y', (d, i) -> i * 25)
       .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
       .attr('height', 20)
       .style('fill', colors)
+
+    highlightReports = (symptom) ->
+      d3.selectAll('.symptom')
+        .filter((d) -> d isnt symptom)
+        .attr('fill-opacity', 0.05)
+      d3.selectAll('.symptom-dates')
+        .filter((d) -> d isnt symptom)
+        .attr('fill-opacity', 0.05)
+
+      d3.selectAll('.report')
+        .filter((d) -> symptom in reports[d].symptoms isnt true)
+        .attr('fill-opacity', 0.05)
+
+    symptomContainers.append('rect')
+      .classed('symptom-container', true)
+      .attr('x', 0)
+      .attr('y', (d, i) -> i * 25)
+      .attr('width', (d, i) -> scale(maxDate) + 130)
+      .attr('height', 20)
+      .style('fill-opacity', 0)
+      .on('mouseover', highlightReports)
+      .on('mouseout', removeHighlight)
 
     graph.append('g')
       .attr('transform', "translate(100,#{25*dataset.length})")
