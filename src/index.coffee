@@ -56,7 +56,7 @@ processPromed = (promedData) ->
       d3.select(this).attr('fill', 'steelblue')
       symptoms = reports[d].symptoms
 
-      d3.selectAll('text')
+      d3.selectAll('text.symptom')
         .filter((d) -> d in symptoms isnt true)
         .attr('fill-opacity', 0.05)
       d3.selectAll('rect')
@@ -65,7 +65,7 @@ processPromed = (promedData) ->
 
     removeHighlight = (d) ->
       d3.selectAll('circle').attr('fill', 'black')
-      d3.selectAll('text').attr('fill-opacity', 1)
+      d3.selectAll('text.symptom').attr('fill-opacity', 1)
       d3.selectAll('rect').attr('fill-opacity', 1)
 
     reportDots.selectAll('circle')
@@ -85,6 +85,7 @@ processPromed = (promedData) ->
       .data(dataset)
       .enter()
       .append('text')
+      .classed('symptom', true)
       .text((d) -> d)
       .attr('x', 0)
       .attr('y', (d, i) -> (i * 25) + 15)
