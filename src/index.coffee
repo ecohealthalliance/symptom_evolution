@@ -7,6 +7,7 @@ processPromed = (promedData) ->
     matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
 
     symptomDates = {}
+    reports = {}
     for match in matches
       dateString = parseInt(match.promed_id.split('.')[0])
       year = Math.floor(dateString / 10000)
@@ -18,6 +19,8 @@ processPromed = (promedData) ->
       for symptom in match.symptoms
         symptomDates[symptom] ?= []
         symptomDates[symptom].push dateObject
+
+      reports[match.title] = {date: dateObject, symptoms: match.symptoms}
 
     symptoms = _.sortBy(_.keys(symptomDates), (symptom) ->
       _.min(symptomDates[symptom])
@@ -44,6 +47,36 @@ processPromed = (promedData) ->
       .orient('bottom')
       .tickFormat(timeFormatter)
       .ticks(d3.time.month)
+
+    $('#reports').empty()
+    reportDots = d3.select('#reports').append('svg')
+      .attr('height', _.keys(reports).length + 20)
+
+    highlightSymptoms = (d) ->
+      d3.select(this).attr('fill', 'steelblue')
+      symptoms = reports[d].symptoms
+
+      d3.selectAll('text')
+        .filter((d) -> d in symptoms isnt true)
+        .attr('fill-opacity', 0.05)
+      d3.selectAll('rect')
+        .filter((d) -> d in symptoms isnt true)
+        .attr('fill-opacity', 0.05)
+
+    removeHighlight = (d) ->
+      d3.selectAll('circle').attr('fill', 'black')
+      d3.selectAll('text').attr('fill-opacity', 1)
+      d3.selectAll('rect').attr('fill-opacity', 1)
+
+    reportDots.selectAll('circle')
+      .data(_.keys(reports))
+      .enter()
+      .append('circle')
+      .attr('cx', (d) -> scale(reports[d].date) + 125)
+      .attr('cy', (d, i) -> i + 10)
+      .attr('r', 10)
+      .on('mouseover', highlightSymptoms)
+      .on('mouseout', removeHighlight)
 
     $('#graph').empty()
     graph = d3.select('#graph').append('svg')
