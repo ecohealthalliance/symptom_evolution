@@ -56,17 +56,17 @@ processPromed = (promedData) ->
       d3.select(this).attr('fill', 'steelblue')
       symptoms = reports[d].symptoms
 
-      d3.selectAll('text.symptom')
+      d3.selectAll('.symptom')
         .filter((d) -> d in symptoms isnt true)
         .attr('fill-opacity', 0.05)
-      d3.selectAll('rect')
+      d3.selectAll('.symptom-dates')
         .filter((d) -> d in symptoms isnt true)
         .attr('fill-opacity', 0.05)
 
     removeHighlight = (d) ->
       d3.selectAll('circle').attr('fill', 'black')
-      d3.selectAll('text.symptom').attr('fill-opacity', 1)
-      d3.selectAll('rect').attr('fill-opacity', 1)
+      d3.selectAll('.symptom').attr('fill-opacity', 1)
+      d3.selectAll('.symptom-dates').attr('fill-opacity', 1)
 
     reportDots.selectAll('circle')
       .data(_.keys(reports))
@@ -97,6 +97,7 @@ processPromed = (promedData) ->
       .data(dataset)
       .enter()
       .append('rect')
+      .classed('symptom-dates', true)
       .attr('x', (d, i) -> scale(firstDates[i]) + 125)
       .attr('y', (d, i) -> i * 25)
       .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
