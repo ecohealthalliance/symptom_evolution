@@ -1,4 +1,4 @@
-drawGraph = (disease, nodes) ->
+drawGraph = (disease, selector, nodes) ->
   matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
 
   symptomDates = {}
@@ -43,10 +43,6 @@ drawGraph = (disease, nodes) ->
     .tickFormat(timeFormatter)
     .ticks(d3.time.month)
 
-  $('#reports').empty()
-  reportDots = d3.select('#reports').append('svg')
-    .attr('height', _.keys(reports).length + 20)
-
   highlightSymptoms = (title) ->
     d3.selectAll('.report')
       .filter((d) -> d isnt title)
@@ -65,7 +61,12 @@ drawGraph = (disease, nodes) ->
     d3.selectAll('.symptom').attr('fill-opacity', 1)
     d3.selectAll('.symptom-dates').attr('fill-opacity', 1)
 
-  reportDots.selectAll('circle')
+  $(selector).empty()
+  figure = d3.select(selector).append('svg')
+
+  figure.append('g')
+    .attr('height', _.keys(reports).length + 20)
+    .selectAll('circle')
     .data(_.keys(reports))
     .enter()
     .append('circle')
@@ -76,8 +77,7 @@ drawGraph = (disease, nodes) ->
     .on('mouseover', highlightSymptoms)
     .on('mouseout', removeHighlight)
 
-  $('#graph').empty()
-  graph = d3.select('#graph').append('svg')
+  graph = figure.append('g')
 
   graph.selectAll('text')
     .data(dataset)
@@ -86,7 +86,7 @@ drawGraph = (disease, nodes) ->
     .classed('symptom', true)
     .text((d) -> d)
     .attr('x', 0)
-    .attr('y', (d, i) -> (i * 25) + 15)
+    .attr('y', (d, i) -> (i * 25) + 115)
     .attr('width', 50)
     .attr('height', 20)
     .style('fill', colors)
@@ -99,7 +99,7 @@ drawGraph = (disease, nodes) ->
   symptomContainers.append('rect')
     .classed('symptom-dates', true)
     .attr('x', (d, i) -> scale(firstDates[i]) + 125)
-    .attr('y', (d, i) -> i * 25)
+    .attr('y', (d, i) -> i * 25 + 100)
     .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
     .attr('height', 20)
     .style('fill', colors)
@@ -119,7 +119,7 @@ drawGraph = (disease, nodes) ->
   symptomContainers.append('rect')
     .classed('symptom-container', true)
     .attr('x', 0)
-    .attr('y', (d, i) -> i * 25)
+    .attr('y', (d, i) -> i * 25 + 100)
     .attr('width', (d, i) -> scale(maxDate) + 130)
     .attr('height', 25)
     .style('fill-opacity', 0)
@@ -127,7 +127,7 @@ drawGraph = (disease, nodes) ->
     .on('mouseout', removeHighlight)
 
   graph.append('g')
-    .attr('transform', "translate(130,#{25*dataset.length})")
+    .attr('transform', "translate(130,#{25*dataset.length + 100})")
     .attr('width', 500)
     .call(axis)
 
@@ -140,14 +140,16 @@ loadFigures = (promedData) ->
   $('#disease-field').autocomplete({
     source: diseases
     select: (event, ui) ->
-      drawGraph ui.item.value, nodes
+      drawGraph ui.item.value, '#graph', nodes
   })
 
-  $('#disease-field').keyup((event) ->
+  $('#disease-field').keyup (event) ->
     if event.keyCode is 13
-      drawGraph $(event.target).val(), nodes
+      drawGraph $(event.target).val(), '#graph', nodes
       $(event.target).autocomplete('close')
-  )
+
+  $('.symptom-graph-figure').each (i, figure) ->
+    drawGraph $(figure).attr('disease'), figure, nodes
 
 $(document).ready () ->
 
