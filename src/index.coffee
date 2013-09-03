@@ -44,22 +44,37 @@ drawGraph = (disease, selector, nodes) ->
     .ticks(d3.time.month)
 
   highlightSymptoms = (title) ->
-    d3.selectAll('.report')
+    svg = $(this).parents('svg')
+    d3.selectAll(svg.find('.report'))
       .filter((d) -> d isnt title)
       .attr('fill-opacity', 0.05)
     symptoms = reports[title].symptoms
 
-    d3.selectAll('.symptom')
+    d3.selectAll(svg.find('.symptom'))
       .filter((d) -> d in symptoms isnt true)
       .attr('fill-opacity', 0.05)
-    d3.selectAll('.symptom-dates')
+    d3.selectAll(svg.find('.symptom-dates'))
       .filter((d) -> d in symptoms isnt true)
       .attr('fill-opacity', 0.05)
 
+  highlightReports = (symptom) ->
+    svg = $(this).parents('svg')
+    d3.selectAll(svg.find('.symptom'))
+      .filter((d) -> d isnt symptom)
+      .attr('fill-opacity', 0.05)
+    d3.selectAll(svg.find('.symptom-dates'))
+      .filter((d) -> d isnt symptom)
+      .attr('fill-opacity', 0.05)
+
+    d3.selectAll(svg.find('.report'))
+      .filter((d) -> symptom in reports[d].symptoms isnt true)
+      .attr('fill-opacity', 0.05)
+
   removeHighlight = (d) ->
-    d3.selectAll('.report').attr('fill-opacity', 1)
-    d3.selectAll('.symptom').attr('fill-opacity', 1)
-    d3.selectAll('.symptom-dates').attr('fill-opacity', 1)
+    svg = $(this).parents('svg')
+    d3.selectAll(svg.find('.report')).attr('fill-opacity', 1)
+    d3.selectAll(svg.find('.symptom')).attr('fill-opacity', 1)
+    d3.selectAll(svg.find('.symptom-dates')).attr('fill-opacity', 1)
 
   $(selector).empty()
   figure = d3.select(selector).append('svg')
@@ -103,18 +118,6 @@ drawGraph = (disease, selector, nodes) ->
     .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
     .attr('height', 20)
     .style('fill', colors)
-
-  highlightReports = (symptom) ->
-    d3.selectAll('.symptom')
-      .filter((d) -> d isnt symptom)
-      .attr('fill-opacity', 0.05)
-    d3.selectAll('.symptom-dates')
-      .filter((d) -> d isnt symptom)
-      .attr('fill-opacity', 0.05)
-
-    d3.selectAll('.report')
-      .filter((d) -> symptom in reports[d].symptoms isnt true)
-      .attr('fill-opacity', 0.05)
 
   symptomContainers.append('rect')
     .classed('symptom-container', true)
