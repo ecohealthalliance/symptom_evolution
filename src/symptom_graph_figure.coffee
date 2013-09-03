@@ -1,15 +1,19 @@
+getNodeDate = (promedNode) ->
+  dateString = parseInt(promedNode.promed_id.split('.')[0])
+  year = Math.floor(dateString / 10000)
+  monthAndDate = dateString - year * 10000
+  month = Math.floor(monthAndDate / 100) - 1
+  date = monthAndDate - (month + 1) * 100
+  new Date(year, month, date)
+
+
 drawGraph = (disease, selector, nodes) ->
   matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
 
   symptomDates = {}
   reports = {}
   for match in matches
-    dateString = parseInt(match.promed_id.split('.')[0])
-    year = Math.floor(dateString / 10000)
-    monthAndDate = dateString - year * 10000
-    month = Math.floor(monthAndDate / 100) - 1
-    date = monthAndDate - (month + 1) * 100
-    dateObject = new Date(year, month, date)
+    dateObject = getNodeDate match
 
     for symptom in match.symptoms
       symptomDates[symptom] ?= []
@@ -135,6 +139,72 @@ drawGraph = (disease, selector, nodes) ->
     .call(axis)
 
 
+drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
+  diseaseSymptomCounts = {}
+
+  for disease in diseases
+    matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
+    sortedMatches = _.sortBy matches, getNodeDate
+
+    symptomCounts = []
+    symptoms = []
+    for match in sortedMatches
+      symptoms = _.uniq(symptoms.concat(match.symptoms))
+      symptomCounts.push({date: getNodeDate(match), count: symptoms.length})
+
+    diseaseSymptomCounts[disease] = symptomCounts
+
+  firstDates = _.map diseaseSymptomCounts, (list) -> _.first(list).date
+  lastDates = _.map diseaseSymptomCounts, (list) -> _.last(list).date
+  maxCounts = _.map diseaseSymptomCounts, (list) -> _.last(list).count
+
+  colors = new d3.scale.category20().domain(diseases)
+
+  xScale = d3.time.scale()
+    .domain([_.min(firstDates), _.max(lastDates)])
+    .range([0, 500])
+
+  yScale = d3.scale.linear()
+    .domain([0, _.max(maxCounts)])
+    .range([500, 0])
+
+  timeFormatter = d3.time.format('%b %y')
+
+  xAxis = d3.svg.axis()
+    .scale(xScale)
+    .orient('bottom')
+    .tickFormat(timeFormatter)
+    .ticks(d3.time.month)
+
+  yAxis = d3.svg.axis()
+    .scale(yScale)
+    .orient('right')
+
+  $(selector).empty()
+  figure = d3.select(selector).append('svg')
+
+  line = d3.svg.line()
+    .x((d) -> xScale(d.date))
+    .y((d) -> yScale(d.count))
+
+  disease = figure.selectAll('.disease')
+    .data(_.keys(diseaseSymptomCounts))
+    .enter()
+    .append('path')
+    .attr('d', (d) -> line(diseaseSymptomCounts[d]))
+    .attr('stroke', colors)
+    .attr('stroke-width', 5)
+    .attr('fill', 'none')
+
+  figure.append('g')
+    .call(xAxis)
+    .attr('transform', 'translate(0,500)')
+
+  figure.append('g')
+    .call(yAxis)
+    .attr('transform', 'translate(500,0)')
+
+
 loadFigures = (promedData) ->
   nodes = promedData.nodes
   diseases = _.uniq(node.disease for node in nodes)
@@ -153,6 +223,10 @@ loadFigures = (promedData) ->
 
   $('.symptom-graph-figure').each (i, figure) ->
     drawGraph $(figure).attr('disease'), figure, nodes
+
+  $('.cumulative-symptom-figure').each (i, figure) ->
+    diseases = $(figure).attr('diseases').split(',')
+    drawCumulativeSymptomGraph diseases, figure, nodes
 
 $(document).ready () ->
 
