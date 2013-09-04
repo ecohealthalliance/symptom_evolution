@@ -83,6 +83,12 @@ drawGraph = (disease, selector, nodes) ->
   $(selector).empty()
   figure = d3.select(selector).append('svg')
 
+  figure.append('text')
+    .classed('figure-title', true)
+    .text(disease)
+    .attr('x', 5)
+    .attr('y', 40)
+
   figure.append('g')
     .attr('height', _.keys(reports).length + 20)
     .selectAll('circle')
@@ -187,7 +193,7 @@ drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
     .x((d) -> xScale(d.date))
     .y((d) -> yScale(d.count))
 
-  disease = figure.selectAll('.disease')
+  disease = figure.selectAll('path')
     .data(_.keys(diseaseSymptomCounts))
     .enter()
     .append('path')
@@ -195,6 +201,21 @@ drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
     .attr('stroke', colors)
     .attr('stroke-width', 5)
     .attr('fill', 'none')
+
+  legend = figure.selectAll('text')
+    .data(_.keys(diseaseSymptomCounts))
+    .enter()
+    .append('text')
+    .text((d) -> d)
+    .attr('stroke', colors)
+    .attr('x', 5)
+    .attr('y', (d, i) -> i * 25 + 50)
+
+  figure.append('text')
+    .attr('x', 5)
+    .attr('y', 20)
+    .text('Cumulative symptom counts')
+    .classed('figure-title', true)
 
   figure.append('g')
     .call(xAxis)
