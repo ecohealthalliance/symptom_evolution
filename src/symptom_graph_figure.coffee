@@ -1,19 +1,10 @@
-getNodeDate = (promedNode) ->
-  dateString = parseInt(promedNode.promed_id.split('.')[0])
-  year = Math.floor(dateString / 10000)
-  monthAndDate = dateString - year * 10000
-  month = Math.floor(monthAndDate / 100) - 1
-  date = monthAndDate - (month + 1) * 100
-  new Date(year, month, date)
-
-
 drawGraph = (disease, selector, nodes) ->
   matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
 
   symptomDates = {}
   reports = {}
   for match in matches
-    dateObject = getNodeDate match
+    dateObject = eha.promed.getDate match
 
     for symptom in match.symptoms
       symptomDates[symptom] ?= []
@@ -150,13 +141,13 @@ drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
 
   for disease in diseases
     matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
-    sortedMatches = _.sortBy matches, getNodeDate
+    sortedMatches = _.sortBy matches, eha.promed.getDate
 
     symptomCounts = []
     symptoms = []
     for match in sortedMatches
       symptoms = _.uniq(symptoms.concat(match.symptoms))
-      symptomCounts.push({date: getNodeDate(match), count: symptoms.length})
+      symptomCounts.push({date: eha.promed.getDate(match), count: symptoms.length})
 
     diseaseSymptomCounts[disease] = symptomCounts
 
