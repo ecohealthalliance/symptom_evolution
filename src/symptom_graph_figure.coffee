@@ -1,16 +1,6 @@
 drawGraph = (disease, selector, nodes) ->
-  matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
-
-  symptomDates = {}
-  reports = {}
-  for match in matches
-    dateObject = eha.promed.getDate match
-
-    for symptom in match.symptoms
-      symptomDates[symptom] ?= []
-      symptomDates[symptom].push dateObject
-
-    reports[match.title] = {date: dateObject, symptoms: match.symptoms}
+  symptomDates = window.eha.promed.getSymptomDates disease, nodes
+  reports = window.eha.promed.getReports disease, nodes
 
   symptoms = _.sortBy(_.keys(symptomDates), (symptom) ->
     _.min(symptomDates[symptom])
@@ -22,9 +12,8 @@ drawGraph = (disease, selector, nodes) ->
   minDate = _.min(firstDates)
   maxDate = _.max(lastDates)
 
-  dataset = _.keys(symptomDates)
+  dataset = symptoms
   colors = new d3.scale.category20().domain(symptoms)
-
 
   scale = d3.time.scale()
     .domain([minDate, maxDate])
@@ -140,16 +129,7 @@ drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
   diseaseSymptomCounts = {}
 
   for disease in diseases
-    matches = (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
-    sortedMatches = _.sortBy matches, eha.promed.getDate
-
-    symptomCounts = []
-    symptoms = []
-    for match in sortedMatches
-      symptoms = _.uniq(symptoms.concat(match.symptoms))
-      symptomCounts.push({date: eha.promed.getDate(match), count: symptoms.length})
-
-    diseaseSymptomCounts[disease] = symptomCounts
+    diseaseSymptomCounts[disease] = eha.promed.getSymptomCounts disease, nodes
 
   firstDates = _.map diseaseSymptomCounts, (list) -> _.first(list).date
   lastDates = _.map diseaseSymptomCounts, (list) -> _.last(list).date
