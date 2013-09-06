@@ -61,6 +61,9 @@ drawGraph = (disease, selector, nodes) ->
     d3.selectAll(svg.find('.symptom-dates')).attr('fill-opacity', 1)
 
   $(selector).empty()
+  width = $(selector).width()
+  height = $(selector).height()
+
   figure = d3.select(selector).append('svg')
 
   figure.append('text')
@@ -69,19 +72,29 @@ drawGraph = (disease, selector, nodes) ->
     .attr('x', 5)
     .attr('y', 40)
 
+  reportsHeight = height * 0.1
+  reportsYScale = d3.scale.linear()
+    .domain([0, _.keys(reports).length])
+    .range([20, reportsHeight])
+
   figure.append('g')
-    .attr('height', _.keys(reports).length + 20)
+    .attr('height', reportsHeight)
     .selectAll('circle')
     .data(_.keys(reports))
     .enter()
     .append('circle')
     .classed('report', true)
     .attr('cx', (d) -> scale(reports[d].date) + 130)
-    .attr('cy', (d, i) -> i + 10)
+    .attr('cy', (d, i) -> reportsYScale(i))
     .attr('r', 10)
     .on('mouseover', highlightSymptoms)
     .on('mouseout', removeHighlight)
 
+  symptomsHeight = height * 0.7
+  barHeight = (symptomsHeight / dataset.length) - 2
+  symptomsYScale = d3.scale.linear()
+    .domain([0, dataset.length])
+    .range([reportsHeight + 25, symptomsHeight + reportsHeight + 25])
   graph = figure.append('g')
 
   graph.selectAll('text')
@@ -91,9 +104,9 @@ drawGraph = (disease, selector, nodes) ->
     .classed('symptom', true)
     .text((d) -> d)
     .attr('x', 0)
-    .attr('y', (d, i) -> (i * 25) + 115)
+    .attr('y', (d, i) -> symptomsYScale(i) + barHeight)
     .attr('width', 50)
-    .attr('height', 20)
+    .attr('height', barHeight)
     .style('fill', colors)
 
   symptomContainers = graph.selectAll('g')
@@ -104,23 +117,23 @@ drawGraph = (disease, selector, nodes) ->
   symptomContainers.append('rect')
     .classed('symptom-dates', true)
     .attr('x', (d, i) -> scale(firstDates[i]) + 125)
-    .attr('y', (d, i) -> i * 25 + 100)
+    .attr('y', (d, i) -> symptomsYScale(i))
     .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
-    .attr('height', 20)
+    .attr('height', barHeight)
     .style('fill', colors)
 
   symptomContainers.append('rect')
     .classed('symptom-container', true)
     .attr('x', 0)
-    .attr('y', (d, i) -> i * 25 + 100)
+    .attr('y', (d, i) -> symptomsYScale(i))
     .attr('width', (d, i) -> scale(maxDate) + 130)
-    .attr('height', 25)
+    .attr('height', barHeight + 2)
     .style('fill-opacity', 0)
     .on('mouseover', highlightReports)
     .on('mouseout', removeHighlight)
 
   graph.append('g')
-    .attr('transform', "translate(130,#{25*dataset.length + 100})")
+    .attr('transform', "translate(130,#{symptomsHeight + reportsHeight + 25})")
     .attr('width', 500)
     .call(axis)
 
@@ -222,4 +235,4 @@ loadFigures = (promedData) ->
 
 $(document).ready () ->
 
-  $.getJSON("promed_symptoms.json").done(loadFigures)
+  $.getJSON("../data/promed_symptoms.json").done(loadFigures)
