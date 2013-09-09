@@ -15,18 +15,6 @@ drawGraph = (disease, selector, nodes) ->
   dataset = symptoms
   colors = new d3.scale.category20().domain(symptoms)
 
-  scale = d3.time.scale()
-    .domain([minDate, maxDate])
-    .range([0, 500])
-
-  timeFormatter = d3.time.format('%b %y')
-
-  axis = d3.svg.axis()
-    .scale(scale)
-    .orient('bottom')
-    .tickFormat(timeFormatter)
-    .ticks(d3.time.month)
-
   highlightSymptoms = (title) ->
     svg = $(this).parents('svg')
     d3.selectAll(svg.find('.report'))
@@ -63,6 +51,7 @@ drawGraph = (disease, selector, nodes) ->
   $(selector).empty()
   width = $(selector).width()
   height = $(selector).height()
+  labelsWidth = width * 0.2
 
   figure = d3.select(selector).append('svg')
 
@@ -71,6 +60,18 @@ drawGraph = (disease, selector, nodes) ->
     .text(disease)
     .attr('x', 5)
     .attr('y', 40)
+
+  xScale = d3.time.scale()
+    .domain([minDate, maxDate])
+    .range([labelsWidth, width - labelsWidth])
+
+  timeFormatter = d3.time.format('%b %y')
+
+  axis = d3.svg.axis()
+    .scale(xScale)
+    .orient('bottom')
+    .tickFormat(timeFormatter)
+    .ticks(d3.time.month)
 
   reportsHeight = height * 0.1
   reportsYScale = d3.scale.linear()
@@ -84,9 +85,9 @@ drawGraph = (disease, selector, nodes) ->
     .enter()
     .append('circle')
     .classed('report', true)
-    .attr('cx', (d) -> scale(reports[d].date) + 130)
+    .attr('cx', (d) -> xScale(reports[d].date))
     .attr('cy', (d, i) -> reportsYScale(i))
-    .attr('r', 10)
+    .attr('r', _.min([width, height]) / 50)
     .on('mouseover', highlightSymptoms)
     .on('mouseout', removeHighlight)
 
@@ -105,7 +106,7 @@ drawGraph = (disease, selector, nodes) ->
     .text((d) -> d)
     .attr('x', 0)
     .attr('y', (d, i) -> symptomsYScale(i) + barHeight)
-    .attr('width', 50)
+    .attr('width', labelsWidth)
     .attr('height', barHeight)
     .style('fill', colors)
 
@@ -116,9 +117,9 @@ drawGraph = (disease, selector, nodes) ->
 
   symptomContainers.append('rect')
     .classed('symptom-dates', true)
-    .attr('x', (d, i) -> scale(firstDates[i]) + 125)
+    .attr('x', (d, i) -> xScale(firstDates[i]))
     .attr('y', (d, i) -> symptomsYScale(i))
-    .attr('width', (d, i) -> scale(lastDates[i]) - scale(firstDates[i]) + 5)
+    .attr('width', (d, i) -> _.max([xScale(lastDates[i]) - xScale(firstDates[i]), 5]))
     .attr('height', barHeight)
     .style('fill', colors)
 
@@ -126,15 +127,15 @@ drawGraph = (disease, selector, nodes) ->
     .classed('symptom-container', true)
     .attr('x', 0)
     .attr('y', (d, i) -> symptomsYScale(i))
-    .attr('width', (d, i) -> scale(maxDate) + 130)
+    .attr('width', (d, i) -> xScale(maxDate) + 5)
     .attr('height', barHeight + 2)
     .style('fill-opacity', 0)
     .on('mouseover', highlightReports)
     .on('mouseout', removeHighlight)
 
   graph.append('g')
-    .attr('transform', "translate(130,#{symptomsHeight + reportsHeight + 25})")
-    .attr('width', 500)
+    .attr('transform', "translate(0,#{symptomsHeight + reportsHeight + 25})")
+    .attr('width', width - labelsWidth)
     .call(axis)
 
 
