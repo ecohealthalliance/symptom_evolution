@@ -49,8 +49,8 @@ drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
     d3.selectAll(svg.find('.symptom-dates')).attr('fill-opacity', 1)
 
   $(selector).empty()
-  width = $(selector).width()
-  height = $(selector).height()
+  width = $(selector).width() - 10
+  height = $(selector).height() - 10
   labelsWidth = if showLabels then width * 0.2 else 0
 
   figure = d3.select(selector).append('svg')
