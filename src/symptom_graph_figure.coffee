@@ -1,4 +1,4 @@
-drawGraph = (disease, selector, nodes) ->
+drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
   symptomDates = window.eha.promed.getSymptomDates disease, nodes
   reports = window.eha.promed.getReports disease, nodes
 
@@ -51,7 +51,7 @@ drawGraph = (disease, selector, nodes) ->
   $(selector).empty()
   width = $(selector).width()
   height = $(selector).height()
-  labelsWidth = width * 0.2
+  labelsWidth = if showLabels then width * 0.2 else 0
 
   figure = d3.select(selector).append('svg')
 
@@ -73,42 +73,44 @@ drawGraph = (disease, selector, nodes) ->
     .tickFormat(timeFormatter)
     .ticks(d3.time.month)
 
-  reportsHeight = height * 0.1
+  reportsHeight = if showReports then height * 0.1 else 20
   reportsYScale = d3.scale.linear()
     .domain([0, _.keys(reports).length])
     .range([20, reportsHeight])
 
-  figure.append('g')
-    .attr('height', reportsHeight)
-    .selectAll('circle')
-    .data(_.keys(reports))
-    .enter()
-    .append('circle')
-    .classed('report', true)
-    .attr('cx', (d) -> xScale(reports[d].date))
-    .attr('cy', (d, i) -> reportsYScale(i))
-    .attr('r', _.min([width, height]) / 50)
-    .on('mouseover', highlightSymptoms)
-    .on('mouseout', removeHighlight)
+  if showReports
+    figure.append('g')
+      .attr('height', reportsHeight)
+      .selectAll('circle')
+      .data(_.keys(reports))
+      .enter()
+      .append('circle')
+      .classed('report', true)
+      .attr('cx', (d) -> xScale(reports[d].date))
+      .attr('cy', (d, i) -> reportsYScale(i))
+      .attr('r', _.min([width, height]) / 50)
+      .on('mouseover', highlightSymptoms)
+      .on('mouseout', removeHighlight)
 
-  symptomsHeight = height * 0.7
+  symptomsHeight = if showReports then height * 0.7 else height * 0.9
   barHeight = (symptomsHeight / dataset.length) - 2
   symptomsYScale = d3.scale.linear()
     .domain([0, dataset.length])
     .range([reportsHeight + 25, symptomsHeight + reportsHeight + 25])
   graph = figure.append('g')
 
-  graph.selectAll('text')
-    .data(dataset)
-    .enter()
-    .append('text')
-    .classed('symptom', true)
-    .text((d) -> d)
-    .attr('x', 0)
-    .attr('y', (d, i) -> symptomsYScale(i) + barHeight)
-    .attr('width', labelsWidth)
-    .attr('height', barHeight)
-    .style('fill', colors)
+  if showLabels
+    graph.selectAll('text')
+      .data(dataset)
+      .enter()
+      .append('text')
+      .classed('symptom', true)
+      .text((d) -> d)
+      .attr('x', 0)
+      .attr('y', (d, i) -> symptomsYScale(i) + barHeight)
+      .attr('width', labelsWidth)
+      .attr('height', barHeight)
+      .style('fill', colors)
 
   symptomContainers = graph.selectAll('g')
     .data(dataset)
@@ -133,10 +135,11 @@ drawGraph = (disease, selector, nodes) ->
     .on('mouseover', highlightReports)
     .on('mouseout', removeHighlight)
 
-  graph.append('g')
-    .attr('transform', "translate(0,#{symptomsHeight + reportsHeight + 25})")
-    .attr('width', width - labelsWidth)
-    .call(axis)
+  if showLabels
+    graph.append('g')
+      .attr('transform', "translate(0,#{symptomsHeight + reportsHeight + 25})")
+      .attr('width', width - labelsWidth)
+      .call(axis)
 
 
 drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
@@ -228,7 +231,9 @@ loadFigures = (promedData) ->
       $(event.target).autocomplete('close')
 
   $('.symptom-graph-figure').each (i, figure) ->
-    drawGraph $(figure).attr('disease'), figure, nodes
+    showReports = $(figure).hasClass('symptom-graph-reports')
+    showLabels = $(figure).hasClass('symptom-graph-labels')
+    drawGraph $(figure).attr('disease'), figure, nodes, showReports, showLabels
 
   $('.cumulative-symptom-figure').each (i, figure) ->
     diseases = $(figure).attr('diseases').split(',')
