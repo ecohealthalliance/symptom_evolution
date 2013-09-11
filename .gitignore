@@ -1,1 +1,2 @@
-built/*
+out/*
+node_modules/*
