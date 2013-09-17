@@ -1,13 +1,15 @@
 # symptom_evolution
 
 ## setup
+
+### with boxen
+* boxen symptom_evolution
+
+### without boxen
 * npm install -g docpad
+* docpad update
+
+## run
 * docpad run
 * http://localhost:9778/
 
-## If you don't use our Boxen recipe, then you'll need some additional node.js dependencies, e.g.
-
-* npm install docpad-plugin-jade
-* npm install docpad-plugin-markdown
-* npm install docpad-plugin-stylus
-* npm install docpad-plugin-coffee
