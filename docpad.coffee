@@ -9,7 +9,7 @@ docpadConfig = {
 
 			styles: [
 				'/vendor/jqueryui.css'
-				'/style.css'
+				'/styles/style.css'
 			]
 
 			scripts: [
@@ -17,8 +17,8 @@ docpadConfig = {
 				'/vendor/jqueryui.js'
 				'/vendor/underscore.js'
 				'/vendor/d3.js'
-				'/promed.js'
-				'/symptom_graph_figure.js'
+				'/scripts/promed.js'
+				'/scripts/symptom_graph_figure.js'
 			]
 }
 
