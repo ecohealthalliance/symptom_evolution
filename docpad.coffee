@@ -19,6 +19,7 @@ docpadConfig = {
 				'/vendor/d3.js'
 				'/scripts/promed.js'
 				'/scripts/symptom_graph_figure.js'
+				'/scripts/script.js'
 			]
 }
 

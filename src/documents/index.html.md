@@ -2,8 +2,7 @@
 layout: default
 ---
  
-Outline
--------
+# Outline
 
 * [Introduction](sections/introduction.html)
 * [Methods](sections/methods.html)
@@ -11,3 +10,9 @@ Outline
 * [Discussion](sections/discussion.html)
 * [Conclusion](sections/conclusion.html)
 * [Figures](figures/figures.html)
+
+# Notes
+
+* [Questions](notes/questions.html)
+* [Figure ideas](figures/figures_ideas.html)
+
