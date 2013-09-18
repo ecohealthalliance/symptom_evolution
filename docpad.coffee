@@ -21,7 +21,11 @@ docpadConfig = {
 				'/scripts/symptom_graph_figure.js'
 				'/scripts/script.js'
 			]
+
+			title: "Symptom Evolution in the Digital Ecosystem"
 }
+
+
 
 # Export the DocPad Configuration
 module.exports = docpadConfig
