@@ -4,7 +4,7 @@ html(lang="en")
     title Symptom Evolution
     != getBlock('styles').add(site.styles).toHTML()
   body
-    h1 Symptom Evolution in the Digital Ecosystem
+    h1= site.title
     p: a(href="../index.html") Outline
     .content!= content
     != getBlock('scripts').add(site.scripts, {defer: false}).toHTML()
