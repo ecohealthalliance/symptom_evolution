@@ -6,6 +6,7 @@ html(lang="en")
   body
     ul
       each doc in getCollection('pages').toJSON()
+            &nbsp; &nbsp;
             a(href=doc.url)= doc.title
     h1= site.title
     h2= document.title
