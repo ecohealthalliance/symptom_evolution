@@ -1,7 +1,8 @@
 ---
+title: Results
 layout: default
+isPage: true
+pageOrder: 3
 ---
-
-## Results
 
 t.b.d.

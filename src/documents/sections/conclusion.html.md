@@ -1,7 +1,8 @@
 ---
+title: Conclusion
 layout: default
+isPage: true
+pageOrder: 5
 ---
-
-## Conclusion
 
 Generalize to other media

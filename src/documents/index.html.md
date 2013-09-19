@@ -1,18 +1,15 @@
 ---
+title: Home
 layout: default
+isPage: true
 ---
- 
-# Outline
 
-* [Introduction](sections/introduction.html)
-* [Methods](sections/methods.html)
-* [Results](sections/results.html)
-* [Discussion](sections/discussion.html)
-* [Conclusion](sections/conclusion.html)
-* [Figures](figures/figures.html)
+## Abstract
+What is the variability in symptom reporting for EID outbreaks?
 
-# Notes
+## Notes
 
 * [Questions](notes/questions.html)
 * [Figure ideas](figures/figures_ideas.html)
+
 

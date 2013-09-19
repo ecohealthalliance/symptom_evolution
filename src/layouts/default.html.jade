@@ -4,7 +4,10 @@ html(lang="en")
     title Symptom Evolution
     != getBlock('styles').add(site.styles).toHTML()
   body
+    ul
+      each doc in getCollection('pages').toJSON()
+            a(href=doc.url)= doc.title
     h1= site.title
-    p: a(href="../index.html") Outline
+    h2= document.title
     .content!= content
     != getBlock('scripts').add(site.scripts, {defer: false}).toHTML()

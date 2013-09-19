@@ -2,7 +2,7 @@
 # http://docpad.org/docs/config
 
 # Define the DocPad Configuration
-docpadConfig = {
+docpadConfig =
 	# ...
 	templateData:
 		site:
@@ -23,9 +23,11 @@ docpadConfig = {
 			]
 
 			title: "Symptom Evolution in the Digital Ecosystem"
-}
-
-
+	collections:
+    # Fetch all documents that have pageOrder set within their meta data
+    
+    pages: (database) ->
+      database.findAllLive({pageOrder: $exists: true}, [pageOrder:1,title:1])
 
 # Export the DocPad Configuration
 module.exports = docpadConfig

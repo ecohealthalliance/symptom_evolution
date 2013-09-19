@@ -1,8 +1,9 @@
 ---
+title: Methods
 layout: default
+isPage: true
+pageOrder: 2
 ---
-
-## Methods
 
 * Scrape Promed
 * Gather symptoms from GIDEON

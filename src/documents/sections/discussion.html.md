@@ -1,8 +1,9 @@
 ---
+title: Discussion
 layout: default
+isPage: true
+pageOrder: 4
 ---
- 
-## Discussion
 
 Generalize the model
 

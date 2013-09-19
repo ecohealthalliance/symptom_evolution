@@ -1,12 +1,13 @@
 ---
+title: Introduction
 layout: default
+isPage: true
+pageOrder: 1
 ---
-
-## Introduction
 
 Goal - Get ahead of the epidemic curve
 
-### Candidate Hypotheses
+Candidate hypotheses:
 
 * There is an asymptopte for symptom evolution
 * There is an underlying 'rule' for determining certainty
