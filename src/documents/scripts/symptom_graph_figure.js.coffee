@@ -1,4 +1,4 @@
-drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
+drawGraph = (disease, selector, nodes, diagnoses, showReports=true, showLabels=true) ->
   symptomDates = window.eha.promed.getSymptomDates disease, nodes
   reports = window.eha.promed.getReports disease, nodes
 
@@ -6,8 +6,8 @@ drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
     _.min(symptomDates[symptom])
   )
     
-  firstDates = (_.min(values) for key, values of symptomDates)
-  lastDates = (_.max(values) for key, values of symptomDates)
+  firstDates = (_.min(symptomDates[symptom]) for symptom in symptoms)
+  lastDates = (_.max(symptomDates[symptom]) for symptom in symptoms)
 
   minDate = _.min(firstDates)
   maxDate = _.max(lastDates)
@@ -42,6 +42,22 @@ drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
       .filter((d) -> symptom in reports[d].symptoms isnt true)
       .attr('fill-opacity', 0.05)
 
+  highlightDisease = (d) ->
+    svg = $(this).parents('svg')
+    dateString = d3.time.format('%Y%m%d')(d)
+    filterFn = (symptom) ->
+      index = _.indexOf(symptoms, symptom)
+      firstDate = d3.time.format('%Y%m%d')(firstDates[index])
+      lastDate = d3.time.format('%Y%m%d')(lastDates[index])
+      (dateString < firstDate) or (dateString > lastDate)
+    d3.selectAll(svg.find('.symptom'))
+      .filter(filterFn)
+      .attr('fill-opacity', 0.05)
+    d3.selectAll(svg.find('.symptom-dates'))
+      .filter(filterFn)
+      .attr('fill-opacity', 0.05)
+
+
   removeHighlight = (d) ->
     svg = $(this).parents('svg')
     d3.selectAll(svg.find('.report')).attr('fill-opacity', 1)
@@ -50,7 +66,7 @@ drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
 
   $(selector).empty()
   width = $(selector).width() - 10
-  height = $(selector).height() - 10
+  height = $(selector).height() - 100
   labelsWidth = if showLabels then width * 0.2 else 0
 
   figure = d3.select(selector).append('svg')
@@ -67,15 +83,39 @@ drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
 
   timeFormatter = d3.time.format('%b %y')
 
+  if diagnoses
+    timeFormatter = (date) ->
+      formattedDate = d3.time.format('%b %y')(date)
+      dateString = d3.time.format('%Y%m%d')(date)
+      diagnosis = diagnoses[dateString].svm
+      dateString
+
   axis = d3.svg.axis()
+    .scale(xScale)
+    .orient('bottom')
+    .tickFormat(d3.time.format('%b %y'))
+    .ticks(d3.time.month)
+
+  diagnoseAxis = d3.svg.axis()
     .scale(xScale)
     .orient('bottom')
     .tickFormat(timeFormatter)
     .ticks(d3.time.month)
 
+  getDate = (dateString) ->
+    year = Math.floor(dateString / 10000)
+    monthAndDate = dateString - year * 10000
+    month = Math.floor(monthAndDate / 100) - 1
+    date = monthAndDate - (month + 1) * 100
+    new Date(year, month, date)
+  if diagnoses
+    tickValues = (getDate(date) for date in _.keys(diagnoses))
+    diagnoseAxis.tickValues(tickValues)
+
+
   reportsHeight = if showReports then height * 0.1 else 20
   reportsYScale = d3.scale.linear()
-    .domain([0, _.keys(reports).length])
+    .domain([_.keys(reports).length, 0])
     .range([20, reportsHeight])
 
   if showReports
@@ -140,6 +180,52 @@ drawGraph = (disease, selector, nodes, showReports=true, showLabels=true) ->
       .attr('transform', "translate(0,#{symptomsHeight + reportsHeight + 25})")
       .attr('width', width - labelsWidth)
       .call(axis)
+
+  if diagnoses
+    getMatrixDiagnosis = (dateString) ->
+      possibleDiseases = diagnoses[dateString].matrix
+      _.max(_.keys(possibleDiseases), (disease) ->
+        possibleDiseases[disease].length
+      )
+
+    getSVMDiagnosis = (dateString) ->
+      diagnoses[dateString].svm
+
+    graph.append('g')
+      .attr('transform', "translate(0,#{symptomsHeight + reportsHeight + 70})")
+      .attr('width', width - labelsWidth)
+      .call(diagnoseAxis)
+      .selectAll("text")  
+      .text((d) ->
+        dateString = d3.time.format('%Y%m%d')(d)
+        getMatrixDiagnosis(dateString)
+      )
+      .style("text-anchor", "end")
+      .attr("transform", (d) ->
+        return "rotate(-45)"
+      )
+      .on('mouseover', highlightDisease)
+      .on('mouseout', removeHighlight)
+
+    secondaryDiagnosis = graph.append('g')
+      .attr('transform', "translate(10,#{symptomsHeight + reportsHeight + 83})")
+      .attr('width', width - labelsWidth)
+      .call(diagnoseAxis)
+      
+    secondaryDiagnosis.selectAll("text")  
+      .text((d) ->
+        dateString = d3.time.format('%Y%m%d')(d)
+        '(' + getSVMDiagnosis(dateString) + ')'
+      )
+      .style("text-anchor", "end")
+      .attr("transform", (d) ->
+        return "rotate(-45)"
+      )
+      .on('mouseover', highlightDisease)
+      .on('mouseout', removeHighlight)
+
+    secondaryDiagnosis.selectAll("path")
+      .style("display", "none")
 
 
 drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
@@ -217,6 +303,7 @@ drawCumulativeSymptomGraph = (diseases, selector, nodes) ->
 loadFigures = (promedData) ->
   nodes = promedData.nodes
   diseases = _.uniq(node.disease for node in nodes)
+  diagnoses = promedData.diagnoses
 
 
   $('#disease-field').autocomplete({
@@ -233,7 +320,7 @@ loadFigures = (promedData) ->
   $('.symptom-graph-figure').each (i, figure) ->
     showReports = $(figure).hasClass('symptom-graph-reports')
     showLabels = $(figure).hasClass('symptom-graph-labels')
-    drawGraph $(figure).attr('disease'), figure, nodes, showReports, showLabels
+    drawGraph $(figure).attr('disease'), figure, nodes, diagnoses, showReports, showLabels
 
   $('.cumulative-symptom-figure').each (i, figure) ->
     diseases = $(figure).attr('diseases').split(',')
@@ -241,4 +328,11 @@ loadFigures = (promedData) ->
 
 $(document).ready () ->
 
-  $.getJSON("../data/promed_symptoms.json").done(loadFigures)
+  file = "../data/promed_symptoms.json"
+  fileAttr = $('.symptom-graph-figure').attr('file')
+  if fileAttr
+    file = "../data/#{fileAttr}"
+
+  $.getJSON(file).done(loadFigures)
+
+

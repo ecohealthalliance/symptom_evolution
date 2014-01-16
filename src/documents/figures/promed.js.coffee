@@ -10,7 +10,10 @@ getDate = (reportNode) ->
   new Date(year, month, date)
 
 getMatches = (disease, nodes) ->
-  (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
+  if disease
+    (node for node in nodes when new RegExp(disease, 'i').test(node.disease))
+  else
+    (node for node in nodes)
 
 window.eha.promed.getSymptomDates = (disease, nodes) ->
   symptomDates = {}
